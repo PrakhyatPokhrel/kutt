@@ -37,6 +37,21 @@ async function createLinkTable(knex) {
         .notNullable()
         .defaultTo(0);
       table
+        .integer("bot_count")
+        .notNullable()
+        .defaultTo(0);
+      table
+        .integer("suspicious_count")
+        .notNullable()
+        .defaultTo(0);
+      table
+        .string("health_status")
+        .notNullable()
+        .defaultTo("unknown");
+      table.dateTime("last_checked_at");
+      table.integer("last_status_code");
+      table.string("last_health_error", 1000);
+      table
         .uuid("uuid")
         .notNullable()
         .defaultTo(knex.fn.uuid());
@@ -51,6 +66,18 @@ async function createLinkTable(knex) {
         .uuid("uuid")
         .notNullable()
         .defaultTo(knex.fn.uuid());
+    });
+  }
+
+  const hasBotCount = await knex.schema.hasColumn("links", "bot_count");
+  if (!hasBotCount) {
+    await knex.schema.alterTable("links", table => {
+      table.integer("bot_count").notNullable().defaultTo(0);
+      table.integer("suspicious_count").notNullable().defaultTo(0);
+      table.string("health_status").notNullable().defaultTo("unknown");
+      table.dateTime("last_checked_at");
+      table.integer("last_status_code");
+      table.string("last_health_error", 1000);
     });
   }
 }

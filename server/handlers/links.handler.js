@@ -1,13 +1,13 @@
 const { differenceInSeconds } = require("date-fns");
 const promisify = require("node:util").promisify;
 const bcrypt = require("bcryptjs");
-const { isbot } = require("isbot");
 const URL = require("node:url");
 const dns = require("node:dns");
 
 const validators = require("./validators.handler");
 const map = require("../utils/map.json");
 const transporter = require("../mail");
+const services = require("../services");
 const query = require("../queries");
 const queue = require("../queues");
 const utils = require("../utils");
@@ -528,21 +528,35 @@ async function redirect(req, res, next) {
     return;
   }
 
-  // 7. Create link visit
-  const isBot = isbot(req.headers["user-agent"]);
-  if (link.user_id && !isBot) {
-    queue.visit.add({
-      userAgent: req.headers["user-agent"],
-      ip: req.ip,
-      country: req.get("cf-ipcountry"),
-      referrer: req.get("Referrer"),
-      link
-    });
-  }
+  // 7. Classify click quality synchronously (sub-ms, NF1) and record asynchronously
+  enqueueLinkClick(req, link);
 
   // 8. Redirect to target
   return res.redirect(link.target);
 };
+
+function enqueueLinkClick(req, link) {
+  if (!link.user_id) return;
+  const userAgent = req.headers["user-agent"] || "";
+  const quality = services.clickQuality.classifyClick({
+    userAgent,
+    ip: req.ip,
+    headers: req.headers,
+    linkId: link.id,
+  });
+  queue.visit.add({
+    userAgent,
+    ip: req.ip,
+    country: req.get("cf-ipcountry"),
+    referrer: req.get("Referrer"),
+    headers: {
+      accept: req.headers["accept"],
+      "accept-language": req.headers["accept-language"],
+    },
+    quality,
+    link,
+  });
+}
 
 async function redirectProtected(req, res) {
   // 1. Get link
@@ -561,16 +575,8 @@ async function redirectProtected(req, res) {
     throw new CustomError("Password is not correct.", 401);
   }
 
-  // 4. Create visit
-  if (link.user_id) {
-    queue.visit.add({
-      userAgent: req.headers["user-agent"],
-      ip: req.ip,
-      country: req.get("cf-ipcountry"),
-      referrer: req.get("Referrer"),
-      link
-    });
-  }
+  // 4. Classify and record visit asynchronously
+  enqueueLinkClick(req, link);
 
   // 5. Send target
   if (req.isHTML) {
@@ -625,34 +631,129 @@ async function stats(req, res) {
     throw new CustomError("Link could not be found.");
   }
 
-  const stats = await query.visit.find({ link_id: link.id }, link.visit_count);
+  const [statsData, clickSummary, recentEvents, linkAlerts] = await Promise.all([
+    query.visit.find({ link_id: link.id }, link.visit_count),
+    query.clickEvent.summarizeByLink(link.id),
+    query.clickEvent.findByLink(link.id, { limit: 15 }),
+    query.alert.findByUser(user.id, { link_id: link.id, limit: 10 }),
+  ]);
 
-  if (!stats) {
+  if (!statsData) {
     throw new CustomError("Could not get the short link stats. Try again later.");
   }
+
+  const clickQuality = {
+    human: link.visit_count ?? clickSummary.human,
+    bot: link.bot_count ?? clickSummary.bot,
+    suspicious: link.suspicious_count ?? clickSummary.suspicious,
+    reasons: clickSummary.reasons,
+    recent_events: recentEvents,
+    health: {
+      status: link.health_status || "unknown",
+      last_checked_at: link.last_checked_at || null,
+      last_status_code: link.last_status_code || null,
+      last_health_error: link.last_health_error || null,
+    },
+    alerts: linkAlerts,
+  };
 
   if (req.isHTML) {
     res.render("partials/stats", {
       link: utils.sanitize.link_html(link),
-      stats,
+      stats: statsData,
+      clickQuality,
       map,
     });
     return;
   }
 
   return res.status(200).send({
-    ...stats,
+    ...statsData,
+    clickQuality,
     ...utils.sanitize.link(link)
   });
 };
 
+async function clickQuality(req, res) {
+  const link = await query.link.find({
+    ...(!req.user.admin && { user_id: req.user.id }),
+    uuid: req.params.id,
+  });
+
+  if (!link) {
+    throw new CustomError("Link could not be found.", 404);
+  }
+
+  const classification = req.query.classification;
+  const [summary, events, alerts] = await Promise.all([
+    query.clickEvent.summarizeByLink(link.id),
+    query.clickEvent.findByLink(link.id, { limit: 50, classification }),
+    query.alert.findByUser(link.user_id, { link_id: link.id, limit: 20 }),
+  ]);
+
+  return res.status(200).send({
+    link_id: link.uuid,
+    address: link.address,
+    counters: {
+      human: link.visit_count || 0,
+      bot: link.bot_count || 0,
+      suspicious: link.suspicious_count || 0,
+    },
+    summary,
+    events,
+    alerts,
+    health: {
+      status: link.health_status || "unknown",
+      last_checked_at: link.last_checked_at || null,
+      last_status_code: link.last_status_code || null,
+      last_health_error: link.last_health_error || null,
+    },
+  });
+}
+
+async function healthCheck(req, res) {
+  const link = await query.link.find({
+    ...(!req.user.admin && { user_id: req.user.id }),
+    uuid: req.params.id,
+  });
+
+  if (!link) {
+    throw new CustomError("Link could not be found.", 404);
+  }
+
+  const result = await services.linkHealth.checkLinkHealth(link);
+
+  if (req.isHTML) {
+    return res.render("partials/stats_health_badge", {
+      layout: false,
+      id: link.uuid,
+      health: {
+        status: result.health_status,
+        last_checked_at: result.last_checked_at,
+        last_status_code: result.last_status_code,
+        last_health_error: result.last_health_error,
+      },
+    });
+  }
+
+  return res.status(200).send({
+    link_id: link.uuid,
+    health_status: result.health_status,
+    last_checked_at: result.last_checked_at,
+    last_status_code: result.last_status_code,
+    last_health_error: result.last_health_error,
+  });
+}
+
 module.exports = {
   ban,
+  clickQuality,
   create,
   edit,
   editAdmin,
   get,
   getAdmin,
+  healthCheck,
   remove,
   report,
   stats,

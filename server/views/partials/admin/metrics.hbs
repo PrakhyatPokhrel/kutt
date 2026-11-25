@@ -1,0 +1,39 @@
+<section id="admin-metrics-panel" class="cq-panel">
+  <h3>Service Observability &amp; Click Quality Metrics</h3>
+  <div class="cq-cards">
+    <div class="cq-card">
+      <span class="cq-label">Total Links</span>
+      <strong class="cq-value">{{metrics.links.total}}</strong>
+    </div>
+    <div class="cq-card">
+      <span class="cq-label">Broken Links</span>
+      <strong class="cq-value cq-danger">{{metrics.links.broken}}</strong>
+    </div>
+    <div class="cq-card">
+      <span class="cq-label">Human Visits</span>
+      <strong class="cq-value">{{metrics.clicks.human_visits}}</strong>
+    </div>
+    <div class="cq-card">
+      <span class="cq-label">Bots Filtered</span>
+      <strong class="cq-value cq-warn">{{metrics.clicks.bot_filtered}}</strong>
+    </div>
+    <div class="cq-card">
+      <span class="cq-label">Suspicious Filtered</span>
+      <strong class="cq-value cq-danger">{{metrics.clicks.suspicious_filtered}}</strong>
+    </div>
+    <div class="cq-card">
+      <span class="cq-label">Active Alerts</span>
+      <strong class="cq-value">{{metrics.alerts.unacknowledged}}</strong>
+    </div>
+    <div class="cq-card">
+      <span class="cq-label">Avg Latency (ms)</span>
+      <strong class="cq-value">{{metrics.clicks.avg_classification_latency_ms}}</strong>
+    </div>
+  </div>
+  <p class="cq-meta">
+    Webhook deliveries — Success: {{metrics.webhooks.deliveries.success}},
+    Pending: {{metrics.webhooks.deliveries.pending}},
+    Failed: {{metrics.webhooks.deliveries.failed}}
+    | <a href="/api/v2/metrics?format=prometheus" target="_blank">Prometheus format</a>
+  </p>
+</section>

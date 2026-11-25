@@ -1,0 +1,128 @@
+.cq-panel,
+.cq-section {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.cq-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin: 0.75rem 0;
+}
+
+.cq-card {
+  flex: 1 1 130px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cq-label {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.cq-value {
+  font-size: 1.35rem;
+  color: #0f172a;
+}
+
+.cq-warn {
+  color: #b45309;
+}
+
+.cq-danger {
+  color: #b91c1c;
+}
+
+.cq-health-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.cq-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.cq-badge-healthy,
+.cq-badge-human {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.cq-badge-broken,
+.cq-badge-suspicious {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.cq-badge-bot {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.cq-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.cq-table th,
+.cq-table td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cq-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.75rem 0;
+}
+
+.cq-form input {
+  flex: 1 1 220px;
+}
+
+.cq-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.cq-meta {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.cq-secret {
+  padding: 0.5rem 0.75rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+}
+
+.cq-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}

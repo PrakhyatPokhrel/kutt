@@ -97,6 +97,24 @@ router.get(
   asyncHandler(link.stats)
 );
 
+router.get(
+  "/:id/click-quality",
+  asyncHandler(auth.apikey),
+  asyncHandler(auth.jwt),
+  validators.getStats,
+  asyncHandler(helpers.verify),
+  asyncHandler(link.clickQuality)
+);
+
+router.post(
+  "/:id/health-check",
+  asyncHandler(auth.apikey),
+  asyncHandler(auth.jwt),
+  validators.getStats,
+  asyncHandler(helpers.verify),
+  asyncHandler(link.healthCheck)
+);
+
 router.post(
   "/:id/protected",
   locals.viewTemplate("partials/protected/form"),

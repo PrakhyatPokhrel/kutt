@@ -1,0 +1,41 @@
+<section id="alerts-wrapper" class="cq-section">
+  <h2>Traffic &amp; Link Health Alerts</h2>
+  {{#if alerts.length}}
+    <table class="cq-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Severity</th>
+          <th>Message</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each alerts}}
+          <tr>
+            <td><code>{{alert_type}}</code></td>
+            <td>{{severity}}</td>
+            <td>{{message}}</td>
+            <td>
+              {{#if acknowledged}}
+                Acknowledged
+              {{else}}
+                <button
+                  type="button"
+                  class="secondary cq-btn"
+                  hx-post="/api/alerts/{{uuid}}/acknowledge"
+                  hx-target="#alerts-wrapper"
+                  hx-swap="outerHTML"
+                >
+                  Acknowledge
+                </button>
+              {{/if}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p class="cq-meta">No traffic anomalies or broken-link alerts recorded.</p>
+  {{/if}}
+</section>

@@ -74,6 +74,15 @@ const spec = {
   REPORT_EMAIL: str({ default: "" }),
   CONTACT_EMAIL: str({ default: "" }),
   NODE_APP_INSTANCE: num({ default: 0 }),
+  ALLOW_PRIVATE_WEBHOOKS: bool({ default: false }),
+  SPIKE_THRESHOLD_PER_MIN: num({ default: 10 }),
+  BOT_SURGE_THRESHOLD_PER_MIN: num({ default: 8 }),
+  CLICK_REPEAT_LIMIT: num({ default: 5 }),
+  CLICK_IP_BURST_LIMIT: num({ default: 20 }),
+  WEBHOOK_MAX_ATTEMPTS: num({ default: 3 }),
+  WEBHOOK_RETRY_BASE_MS: num({ default: 1000 }),
+  LINK_HEALTH_RECHECK_MS: num({ default: 3600000 }),
+  ENABLE_BACKGROUND_JOBS: bool({ default: true }),
 };
 
 for (const key in spec) {

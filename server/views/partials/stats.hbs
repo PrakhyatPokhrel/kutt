@@ -30,6 +30,53 @@
       </nav>
     </div>
 
+    {{#if clickQuality}}
+      <section class="cq-panel">
+        <div class="cq-cards">
+          <div class="cq-card">
+            <span class="cq-label">Human Visits</span>
+            <strong class="cq-value">{{clickQuality.human}}</strong>
+          </div>
+          <div class="cq-card">
+            <span class="cq-label">Bots Filtered</span>
+            <strong class="cq-value cq-warn">{{clickQuality.bot}}</strong>
+          </div>
+          <div class="cq-card">
+            <span class="cq-label">Suspicious Filtered</span>
+            <strong class="cq-value cq-danger">{{clickQuality.suspicious}}</strong>
+          </div>
+        </div>
+        {{> stats_health_badge id=link.id health=clickQuality.health}}
+        {{#if clickQuality.recent_events.length}}
+          <details class="cq-details">
+            <summary>Recent Click Quality Telemetry ({{clickQuality.recent_events.length}})</summary>
+            <table class="cq-table">
+              <thead>
+                <tr>
+                  <th>Classification</th>
+                  <th>Reason</th>
+                  <th>Browser / OS</th>
+                  <th>Latency (ms)</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each clickQuality.recent_events}}
+                  <tr>
+                    <td><span class="cq-badge cq-badge-{{classification}}">{{classification}}</span></td>
+                    <td>{{reason}}</td>
+                    <td>{{browser}} / {{os}}</td>
+                    <td>{{latency_ms}}</td>
+                    <td>{{created_at}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </details>
+        {{/if}}
+      </section>
+    {{/if}}
+
     <div class="stats-period">
       <h2 data-period="day"><span class="total-in-period">{{stats.lastDay.total}}</span> tracked visits in the last day.</h2>
       <h2 class="hidden" data-period="week"><span class="total-in-period">{{stats.lastWeek.total}}</span> tracked visits in the last week.</h2>

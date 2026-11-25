@@ -1,0 +1,72 @@
+<section id="webhooks-wrapper" class="cq-section">
+  <h2>Webhooks &amp; Traffic Intelligence</h2>
+  <p>
+    Receive signed JSON alerts (<code>X-Kutt-Signature</code>) when traffic spikes, bot surges,
+    or broken destination links are detected. Failed deliveries retry automatically with exponential backoff.
+  </p>
+
+  {{#if success}}
+    <p class="success">{{success}}</p>
+  {{/if}}
+  {{#if created_secret}}
+    <p class="cq-secret"><strong>Signing secret:</strong> <code>{{created_secret}}</code></p>
+  {{/if}}
+  {{#if error}}
+    <p class="error">{{error}}</p>
+  {{/if}}
+
+  <form
+    hx-post="/api/webhooks"
+    hx-target="#webhooks-wrapper"
+    hx-swap="outerHTML"
+    class="cq-form"
+  >
+    <input type="url" name="url" placeholder="https://example.com/webhook" required />
+    <input type="text" name="events" value="traffic_spike,bot_surge,link_broken" placeholder="Events (comma-separated)" />
+    <button type="submit" class="primary">Add Webhook</button>
+  </form>
+
+  {{#if webhooks.length}}
+    <table class="cq-table">
+      <thead>
+        <tr>
+          <th>Endpoint</th>
+          <th>Events</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each webhooks}}
+          <tr>
+            <td><code>{{url}}</code></td>
+            <td>{{events}}</td>
+            <td>{{#if enabled}}Active{{else}}Paused{{/if}}</td>
+            <td>
+              <button
+                type="button"
+                class="secondary cq-btn"
+                hx-post="/api/webhooks/{{id}}/test"
+                hx-target="#webhooks-wrapper"
+                hx-swap="outerHTML"
+              >
+                Test
+              </button>
+              <button
+                type="button"
+                class="secondary cq-btn"
+                hx-delete="/api/webhooks/{{id}}"
+                hx-target="#webhooks-wrapper"
+                hx-swap="outerHTML"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p class="cq-meta">No webhooks configured yet.</p>
+  {{/if}}
+</section>

@@ -1,0 +1,18 @@
+<div id="link-health-badge" class="cq-health-box">
+  <span class="cq-badge cq-badge-{{health.status}}">Health: {{health.status}}</span>
+  {{#if health.last_status_code}}
+    <span class="cq-meta">HTTP {{health.last_status_code}}</span>
+  {{/if}}
+  {{#if health.last_health_error}}
+    <span class="cq-meta cq-error">{{health.last_health_error}}</span>
+  {{/if}}
+  <button
+    type="button"
+    class="secondary cq-btn"
+    hx-post="/api/v2/links/{{id}}/health-check"
+    hx-target="#link-health-badge"
+    hx-swap="outerHTML"
+  >
+    Check Health
+  </button>
+</div>

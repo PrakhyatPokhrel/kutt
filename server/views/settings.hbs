@@ -8,6 +8,10 @@
   <hr />
   {{> settings/apikey}}
   <hr />
+  <div id="webhooks-wrapper" hx-get="/api/webhooks" hx-trigger="load" hx-swap="outerHTML"></div>
+  <hr />
+  <div id="alerts-wrapper" hx-get="/api/alerts" hx-trigger="load" hx-swap="outerHTML"></div>
+  <hr />
   {{> settings/change_password}}
   <hr />
   {{#if mail_enabled}}

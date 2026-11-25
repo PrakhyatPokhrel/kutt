@@ -11,12 +11,18 @@ const selectable = [
   "links.id",
   "links.address",
   "links.banned",
+  "links.bot_count",
   "links.created_at",
   "links.domain_id",
   "links.updated_at",
   "links.password",
   "links.description",
   "links.expire_in",
+  "links.health_status",
+  "links.last_checked_at",
+  "links.last_health_error",
+  "links.last_status_code",
+  "links.suspicious_count",
   "links.target",
   "links.visit_count",
   "links.user_id",
@@ -295,13 +301,37 @@ function incrementVisit(match) {
   return knex("links").where(match).increment("visit_count", 1);
 }
 
+function incrementBotCount(match) {
+  return knex("links").where(match).increment("bot_count", 1);
+}
+
+function incrementSuspiciousCount(match) {
+  return knex("links").where(match).increment("suspicious_count", 1);
+}
+
+function findStaleForHealthCheck(cutoffDate, limit = 10) {
+  return knex("links")
+    .select(...selectable)
+    .leftJoin("domains", "links.domain_id", "domains.id")
+    .where("links.banned", false)
+    .whereNotNull("links.user_id")
+    .andWhere(function () {
+      this.whereNull("links.last_checked_at").orWhere("links.last_checked_at", "<", cutoffDate);
+    })
+    .orderBy("links.last_checked_at", "asc")
+    .limit(limit);
+}
+
 module.exports = {
   normalizeMatch,
   batchRemove,
   create,
   find,
+  findStaleForHealthCheck,
   get,
   getAdmin,
+  incrementBotCount,
+  incrementSuspiciousCount,
   incrementVisit,
   remove,
   total,
